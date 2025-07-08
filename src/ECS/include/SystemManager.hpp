@@ -2,27 +2,7 @@
 #include <map>
 #include <unordered_set>
 #include <memory>
-
-
-class System {
-    protected:
-        std::unordered_set<Entity> entitySet;
-    public:
-        virtual ~System() = default;
-        
-        void addEntity(Entity entity){
-            entitySet.insert(entity);
-        }
-
-        void removeEntity(Entity entity){
-            entitySet.erase(entity);
-        }
-
-        size_t getEntityCount(Entity entity){
-            return entitySet.count(entity);
-        }
-};
-
+#include "System.hpp"
 
 class SystemManager {
 
