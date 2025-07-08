@@ -1,0 +1,61 @@
+# --- Build artifacts ---
+# Ignore the build directory created by CMake
+/build/
+
+# Ignore other common build directory names
+/bin/
+/out/
+/install/
+
+# Ignore compiled object files, libraries, and executables
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.ilk
+*.pdb
+
+# --- Dependencies ---
+# Ignore the directory containing third-party libraries managed by submodules
+/lib/
+# But DO NOT ignore the glad library, which is not a submodule
+!/lib/glad/
+
+# --- IDE-specific files ---
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# CLion
+.idea/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.vcxproj.filters
+*.vcxproj.user
+
+# --- Other ---
+# Log files
+*.log
+
+# User-specific files
+*.user
+*~
+
+# OS-generated files
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
