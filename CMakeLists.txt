@@ -30,7 +30,10 @@ target_include_directories(Superposition PRIVATE
     # Libraries
     "${CMAKE_SOURCE_DIR}/lib/glad/include"
     "${CMAKE_SOURCE_DIR}/lib/glm"
+    "${CMAKE_SOURCE_DIR}/lib/tinyobjloader"
 )
+
+target_compile_definitions(Superposition PRIVATE GLM_ENABLE_EXPERIMENTAL)
 
 # --- 6. Add and Link Dependencies ---
 add_subdirectory(lib/glfw)
