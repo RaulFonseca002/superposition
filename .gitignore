@@ -6,6 +6,7 @@
 /bin/
 /out/
 /install/
+/assets/models
 
 # Ignore compiled object files, libraries, and executables
 *.o
