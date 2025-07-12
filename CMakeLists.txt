@@ -17,6 +17,14 @@ set(SOURCES
 # --- 4. Create the Executable ---
 add_executable(Superposition ${SOURCES})
 
+# Add Bullet Physics
+# We add the main library and disable building demos and tests for faster compiles
+option(BUILD_BULLET2_DEMOS "Build Bullet2 demos" OFF)
+option(BUILD_CPU_DEMOS "Build cpu demos" OFF)
+option(BUILD_OPENGL3_DEMOS "Build opengl3 demos" OFF)
+option(BUILD_UNIT_TESTS "Build Bullet unit tests" OFF)
+add_subdirectory(lib/bullet)
+
 # --- 5. Add Include Directories ---
 target_include_directories(Superposition PRIVATE
     # Engine Modules
@@ -31,6 +39,8 @@ target_include_directories(Superposition PRIVATE
     "${CMAKE_SOURCE_DIR}/lib/glad/include"
     "${CMAKE_SOURCE_DIR}/lib/glm"
     "${CMAKE_SOURCE_DIR}/lib/tinyobjloader"
+    "${CMAKE_SOURCE_DIR}/lib/bullet"
+
 )
 
 target_compile_definitions(Superposition PRIVATE GLM_ENABLE_EXPERIMENTAL)

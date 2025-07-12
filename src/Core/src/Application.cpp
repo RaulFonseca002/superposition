@@ -41,7 +41,6 @@ void Application::init() {
     m_coordinator->registerComponent<CameraComponent>();
     m_coordinator->registerComponent<RigidBodyComponent>();
 
-    // RenderSystem signature no longer needs MaterialComponent
     {
         Signature signature;
         signature.set(m_coordinator->getComponentTypeID<TransformComponent>());
@@ -58,7 +57,7 @@ void Application::init() {
     }
 
     m_assetManager->loadShader("phong", "assets/shaders/phong.vert", "assets/shaders/phong.frag");
-    m_assetManager->loadMesh("cube", "assets/models/cube2.obj"); 
+    m_assetManager->loadMesh("cube", "assets/models/cube.obj"); 
 
     m_lightPos = glm::vec3(5.0f, 5.0f, 5.0f);
     m_lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
