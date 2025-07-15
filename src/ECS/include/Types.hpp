@@ -63,3 +63,13 @@ struct SpatialManifoldComponent {
     Entity targetManifold;
     SpaceID targetSpace;
 };
+
+enum class ShapeType { BOX, SPHERE, CAPSULE };
+
+struct CollisionShapeComponent{
+
+    //for spheres we use x as radius
+    //for capsules we use x and radius and y as height
+    ShapeType type;
+    glm::vec3 dimensions;
+};

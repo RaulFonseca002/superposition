@@ -4,10 +4,11 @@
 #include <unordered_set>
 
 class System {
-    protected:
-        std::unordered_set<Entity> entitySet;
     public:
+        std::unordered_set<Entity> entitySet;
         virtual ~System() = default;
+        virtual void onEntityAdded(Entity entity) = 0;
+        virtual void onEntityRemoved(Entity entity) = 0;
         
         void addEntity(Entity entity){
             entitySet.insert(entity);

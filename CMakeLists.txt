@@ -6,7 +6,14 @@ project(Superposition VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --- 3. Collect Source Files ---
+# --- 3. Add Subdirectories for Dependencies ---
+add_subdirectory(lib/glfw)
+add_subdirectory(lib/bullet)
+
+# Find the standard Threads package
+find_package(Threads REQUIRED)
+
+# --- 4. Collect Source Files ---
 file(GLOB_RECURSE MODULE_SOURCES "src/*/*.cpp")
 set(SOURCES
     src/main.cpp
@@ -14,20 +21,12 @@ set(SOURCES
     lib/glad/src/glad.c
 )
 
-# --- 4. Create the Executable ---
+# --- 5. Create the Executable ---
 add_executable(Superposition ${SOURCES})
 
-# Add Bullet Physics
-# We add the main library and disable building demos and tests for faster compiles
-option(BUILD_BULLET2_DEMOS "Build Bullet2 demos" OFF)
-option(BUILD_CPU_DEMOS "Build cpu demos" OFF)
-option(BUILD_OPENGL3_DEMOS "Build opengl3 demos" OFF)
-option(BUILD_UNIT_TESTS "Build Bullet unit tests" OFF)
-add_subdirectory(lib/bullet)
-
-# --- 5. Add Include Directories ---
+# --- 6. Configure the Superposition Target ---
+# Add Include Directories
 target_include_directories(Superposition PRIVATE
-    # Engine Modules
     "${CMAKE_SOURCE_DIR}/src/Core/include"
     "${CMAKE_SOURCE_DIR}/src/ECS/include"
     "${CMAKE_SOURCE_DIR}/src/Renderer/include"
@@ -35,22 +34,22 @@ target_include_directories(Superposition PRIVATE
     "${CMAKE_SOURCE_DIR}/src/Scene/include"
     "${CMAKE_SOURCE_DIR}/src/Components"
     "${CMAKE_SOURCE_DIR}/src/Systems/include"
-    # Libraries
     "${CMAKE_SOURCE_DIR}/lib/glad/include"
     "${CMAKE_SOURCE_DIR}/lib/glm"
     "${CMAKE_SOURCE_DIR}/lib/tinyobjloader"
-    "${CMAKE_SOURCE_DIR}/lib/bullet"
-
+    "${CMAKE_SOURCE_DIR}/lib/bullet/src" 
 )
 
+# Add Compile Definitions
 target_compile_definitions(Superposition PRIVATE GLM_ENABLE_EXPERIMENTAL)
 
-# --- 6. Add and Link Dependencies ---
-add_subdirectory(lib/glfw)
-find_package(Threads REQUIRED)
+# Link Libraries
 target_link_libraries(Superposition PRIVATE
     glfw
     Threads::Threads
+    BulletDynamics
+    BulletCollision
+    LinearMath
 )
 
 # --- 7. Unit Testing Setup ---
@@ -59,20 +58,25 @@ add_subdirectory(lib/googletest EXCLUDE_FROM_ALL)
 
 # Create a separate executable for our tests
 add_executable(UnitTests
-    # List all test files and the .cpp files they are testing
+    # Test files
     tests/EntityManagerTest.cpp
     tests/ComponentManagerTest.cpp
     tests/SystemManagerTest.cpp
     tests/CoordinatorTest.cpp
+    tests/PhysicsSystemTest.cpp
+
+    # Source files needed by the tests
     src/ECS/src/EntityManager.cpp
     src/ECS/src/ComponentManager.cpp
-    src/ECS/src/SystenManager.cpp
+    src/ECS/src/SystemManager.cpp
     src/ECS/src/Coordinator.cpp
+    src/Core/src/Space.cpp
+    src/Core/src/SpaceManager.cpp
+    src/Systems/src/PhysicsSystem.cpp
 )
 
-# The test executable needs access to the same include directories
+# The test executable needs access to the same include directories and definitions
 target_include_directories(UnitTests PRIVATE
-    # Engine Modules
     "${CMAKE_SOURCE_DIR}/src/Core/include"
     "${CMAKE_SOURCE_DIR}/src/ECS/include"
     "${CMAKE_SOURCE_DIR}/src/Renderer/include"
@@ -80,13 +84,19 @@ target_include_directories(UnitTests PRIVATE
     "${CMAKE_SOURCE_DIR}/src/Scene/include"
     "${CMAKE_SOURCE_DIR}/src/Components"
     "${CMAKE_SOURCE_DIR}/src/Systems/include"
-    # Libraries
     "${CMAKE_SOURCE_DIR}/lib/glad/include"
     "${CMAKE_SOURCE_DIR}/lib/glm"
+    "${CMAKE_SOURCE_DIR}/lib/bullet/src"
 )
+target_compile_definitions(UnitTests PRIVATE GLM_ENABLE_EXPERIMENTAL)
 
-# Link the test executable against GoogleTest
-target_link_libraries(UnitTests PRIVATE gtest_main)
+# Link the test executable against GoogleTest and Bullet
+target_link_libraries(UnitTests PRIVATE 
+    gtest_main
+    BulletDynamics
+    BulletCollision
+    LinearMath
+)
 
 # Automatically discover all tests within the test executable
 include(GoogleTest)

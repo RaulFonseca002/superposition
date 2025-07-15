@@ -37,3 +37,9 @@ void RenderSystem::draw(Coordinator& coordinator,
         mesh->draw(*shader, assetManager);
     }
 }
+
+void RenderSystem::onEntityAdded(Entity entity) {
+}
+
+void RenderSystem::onEntityRemoved(Entity entity) {
+}

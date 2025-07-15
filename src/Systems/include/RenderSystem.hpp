@@ -20,4 +20,8 @@ public:
               const TransformComponent& cameraTransform,
               const glm::vec3& lightPos,
               const glm::vec3& lightColor);
+
+    void onEntityAdded(Entity entity) override;
+    void onEntityRemoved(Entity entity) override;
 };
+

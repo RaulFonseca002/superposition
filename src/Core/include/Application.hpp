@@ -2,6 +2,7 @@
 
 #include "Coordinator.hpp"
 #include "AssetManager.hpp"
+#include "SpaceManager.hpp"
 #include "RenderSystem.hpp"
 #include "PhysicsSystem.hpp"
 #include <memory>
@@ -21,12 +22,14 @@ private:
     GLFWwindow* m_window;
     std::unique_ptr<Coordinator> m_coordinator;
     std::unique_ptr<AssetManager> m_assetManager;
+    std::unique_ptr<SpaceManager> m_spaceManager;
 
     std::shared_ptr<RenderSystem> m_renderSystem;
     std::shared_ptr<PhysicsSystem> m_physicsSystem;
     
     Entity m_cameraEntity;
     Entity m_cubeEntity;
+    Entity m_groundEntity;
 
     glm::vec3 m_lightPos;
     glm::vec3 m_lightColor;

@@ -7,7 +7,15 @@ struct DummyComponent {
     int value;
 };
 
-class DummySystem : public System {};
+class DummySystem : public System {
+public:
+    void onEntityAdded(Entity entity) override {
+        // Empty implementation for the test
+    }
+    void onEntityRemoved(Entity entity) override {
+        // Empty implementation for the test
+    }
+};
 
 
 TEST(CoordinatorTest, Orchestration) {

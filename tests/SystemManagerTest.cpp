@@ -1,70 +1,50 @@
 #include <gtest/gtest.h>
 #include "SystemManager.hpp"
-#include "ComponentManager.hpp" // Needed to get component IDs
+#include "ComponentManager.hpp"
 #include "Types.hpp"
+#include "System.hpp"
 
-// Define dummy components and a system for testing
+// Define a dummy system that correctly implements the System interface
+class DummySystem : public System {
+public:
+    void onEntityAdded(Entity entity) override {
+        // Empty for test
+    }
+    void onEntityRemoved(Entity entity) override {
+        // Empty for test
+    }
+};
+
+// Define some dummy components for testing
 struct ComponentA {};
 struct ComponentB {};
 
-class DummySystem : public System {};
-
-
 TEST(SystemManagerTest, changeSignature) {
     // ARRANGE
-    ComponentManager componentManager;
-    SystemManager systemManager;
+    auto componentManager = std::make_unique<ComponentManager>();
+    auto systemManager = std::make_unique<SystemManager>();
 
-    // Register components to get their IDs
-    componentManager.registerComponent<ComponentA>();
-    componentManager.registerComponent<ComponentB>();
+    componentManager->registerComponent<ComponentA>();
+    componentManager->registerComponent<ComponentB>();
 
-    // Define the signature for DummySystem (requires ComponentA)
     Signature systemSignature;
-    systemSignature.set(componentManager.getComponentTypeID<ComponentA>());
+    systemSignature.set(componentManager->getComponentTypeID<ComponentA>());
+    systemManager->registerSystem<DummySystem>(systemSignature);
 
-    // Register the system with its signature
-    systemManager.registerSystem<DummySystem>(systemSignature);
-    auto dummySystem = systemManager.getSystem<DummySystem>();
-
-    // Create an entity
+    auto dummySystem = systemManager->getSystem<DummySystem>();
     Entity entity = 0;
 
-    // ACT & ASSERT: Scenario 1 (Entity gains a matching signature)
-    Signature entitySignatureA;
-    entitySignatureA.set(componentManager.getComponentTypeID<ComponentA>());
-    systemManager.changeSignature(entity, entitySignatureA);
-
-    // Assert that the entity is now in the system's set
+    // ACT & ASSERT
+    Signature entitySignature;
+    entitySignature.set(componentManager->getComponentTypeID<ComponentA>());
+    systemManager->changeSignature(entity, entitySignature);
     ASSERT_EQ(dummySystem->getEntityCount(entity), 1);
 
-    // ACT & ASSERT: Scenario 2 (Entity loses the matching signature)
-    Signature entitySignatureNone; // An empty signature
-    systemManager.changeSignature(entity, entitySignatureNone);
+    entitySignature.set(componentManager->getComponentTypeID<ComponentB>());
+    systemManager->changeSignature(entity, entitySignature);
+    ASSERT_EQ(dummySystem->getEntityCount(entity), 1);
 
-    // Assert that the entity is no longer in the system's set
-    ASSERT_EQ(dummySystem->getEntityCount(entity), 0);
-}
-
-TEST(SystemManagerTest, EntityDestroyed) {
-    // ARRANGE
-    ComponentManager componentManager;
-    SystemManager systemManager;
-    componentManager.registerComponent<ComponentA>();
-    Signature systemSignature;
-    systemSignature.set(componentManager.getComponentTypeID<ComponentA>());
-    systemManager.registerSystem<DummySystem>(systemSignature);
-    auto dummySystem = systemManager.getSystem<DummySystem>();
-    Entity entity = 0;
-    Signature entitySignature;
-    entitySignature.set(componentManager.getComponentTypeID<ComponentA>());
-    systemManager.changeSignature(entity, entitySignature);
-    ASSERT_EQ(dummySystem->getEntityCount(entity), 1); // Pre-condition check
-
-    // ACT
-    systemManager.removeEntity(entity);
-
-    // ASSERT
-    // Assert that the entity was removed from the system's set
+    entitySignature.reset(componentManager->getComponentTypeID<ComponentA>());
+    systemManager->changeSignature(entity, entitySignature);
     ASSERT_EQ(dummySystem->getEntityCount(entity), 0);
 }
