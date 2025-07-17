@@ -5,6 +5,7 @@
 #include "SpaceManager.hpp"
 #include "RenderSystem.hpp"
 #include "PhysicsSystem.hpp"
+#include "InputSystem.hpp"
 #include <memory>
 #include <glm/glm.hpp>
 
@@ -17,23 +18,23 @@ public:
 
 private:
     void init();
-    void processInput();
 
-    GLFWwindow* m_window;
-    std::unique_ptr<Coordinator> m_coordinator;
-    std::unique_ptr<AssetManager> m_assetManager;
-    std::unique_ptr<SpaceManager> m_spaceManager;
+    GLFWwindow* window;
+    std::unique_ptr<Coordinator> coordinator;
+    std::unique_ptr<AssetManager> assetManager;
+    std::unique_ptr<SpaceManager> spaceManager;
 
-    std::shared_ptr<RenderSystem> m_renderSystem;
-    std::shared_ptr<PhysicsSystem> m_physicsSystem;
+    std::shared_ptr<RenderSystem> renderSystem;
+    std::shared_ptr<PhysicsSystem> physicsSystem;
+    std::shared_ptr<InputSystem> inputSystem;
     
-    Entity m_cameraEntity;
-    Entity m_cubeEntity;
-    Entity m_groundEntity;
+    Entity cameraEntity;
+    Entity cubeEntity;
+    Entity groundEntity;
 
-    glm::vec3 m_lightPos;
-    glm::vec3 m_lightColor;
+    glm::vec3 lightPos;
+    glm::vec3 lightColor;
 
-    float m_deltaTime = 0.0f;
-    float m_lastFrame = 0.0f;
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
 };

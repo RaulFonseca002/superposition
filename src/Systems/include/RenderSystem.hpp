@@ -4,6 +4,7 @@
 #include <memory>
 #include <glm/glm.hpp>
 
+
 // Forward-declarations
 class Coordinator;
 class AssetManager;
@@ -21,7 +22,6 @@ public:
               const glm::vec3& lightPos,
               const glm::vec3& lightColor);
 
-    void onEntityAdded(Entity entity) override;
-    void onEntityRemoved(Entity entity) override;
+    void onEntityAdded(Entity entity) override {}
+    void onEntityRemoved(Entity entity) override {}
 };
-

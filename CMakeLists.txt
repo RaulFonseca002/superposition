@@ -14,10 +14,22 @@ add_subdirectory(lib/bullet)
 find_package(Threads REQUIRED)
 
 # --- 4. Collect Source Files ---
-file(GLOB_RECURSE MODULE_SOURCES "src/*/*.cpp")
+# Explicitly list all source files for the executable. This is more robust.
 set(SOURCES
     src/main.cpp
-    ${MODULE_SOURCES}
+    src/Core/src/Application.cpp
+    src/Core/src/AssetManager.cpp
+    src/Core/src/Space.cpp
+    src/Core/src/SpaceManager.cpp
+    src/ECS/src/Coordinator.cpp
+    src/ECS/src/EntityManager.cpp
+    src/ECS/src/ComponentManager.cpp
+    src/ECS/src/SystemManager.cpp
+    src/Renderer/src/Shader.cpp
+    src/Renderer/src/Mesh.cpp
+    src/Systems/src/RenderSystem.cpp
+    src/Systems/src/PhysicsSystem.cpp
+    src/Systems/src/InputSystem.cpp
     lib/glad/src/glad.c
 )
 
@@ -30,14 +42,12 @@ target_include_directories(Superposition PRIVATE
     "${CMAKE_SOURCE_DIR}/src/Core/include"
     "${CMAKE_SOURCE_DIR}/src/ECS/include"
     "${CMAKE_SOURCE_DIR}/src/Renderer/include"
-    "${CMAKE_SOURCE_DIR}/src/Physics/include"
-    "${CMAKE_SOURCE_DIR}/src/Scene/include"
-    "${CMAKE_SOURCE_DIR}/src/Components"
     "${CMAKE_SOURCE_DIR}/src/Systems/include"
     "${CMAKE_SOURCE_DIR}/lib/glad/include"
     "${CMAKE_SOURCE_DIR}/lib/glm"
     "${CMAKE_SOURCE_DIR}/lib/tinyobjloader"
     "${CMAKE_SOURCE_DIR}/lib/bullet/src" 
+    "${CMAKE_SOURCE_DIR}/lib/glfw/include"
 )
 
 # Add Compile Definitions
@@ -73,6 +83,7 @@ add_executable(UnitTests
     src/Core/src/Space.cpp
     src/Core/src/SpaceManager.cpp
     src/Systems/src/PhysicsSystem.cpp
+    src/Systems/src/InputSystem.cpp
 )
 
 # The test executable needs access to the same include directories and definitions
@@ -80,19 +91,19 @@ target_include_directories(UnitTests PRIVATE
     "${CMAKE_SOURCE_DIR}/src/Core/include"
     "${CMAKE_SOURCE_DIR}/src/ECS/include"
     "${CMAKE_SOURCE_DIR}/src/Renderer/include"
-    "${CMAKE_SOURCE_DIR}/src/Physics/include"
-    "${CMAKE_SOURCE_DIR}/src/Scene/include"
-    "${CMAKE_SOURCE_DIR}/src/Components"
     "${CMAKE_SOURCE_DIR}/src/Systems/include"
     "${CMAKE_SOURCE_DIR}/lib/glad/include"
     "${CMAKE_SOURCE_DIR}/lib/glm"
     "${CMAKE_SOURCE_DIR}/lib/bullet/src"
+    "${CMAKE_SOURCE_DIR}/lib/glfw/include"
 )
 target_compile_definitions(UnitTests PRIVATE GLM_ENABLE_EXPERIMENTAL)
 
 # Link the test executable against GoogleTest and Bullet
 target_link_libraries(UnitTests PRIVATE 
     gtest_main
+    glfw
+    Threads::Threads
     BulletDynamics
     BulletCollision
     LinearMath

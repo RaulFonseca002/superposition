@@ -5,6 +5,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+
+#include "RenderSystem.hpp"
+#include "Coordinator.hpp"
+#include "AssetManager.hpp"
+#include "Mesh.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 void RenderSystem::draw(Coordinator& coordinator,
                         AssetManager& assetManager,
                         std::shared_ptr<Shader> shader,
@@ -15,7 +23,15 @@ void RenderSystem::draw(Coordinator& coordinator,
 {
     shader->use();
 
-    glm::mat4 view = glm::lookAt(cameraTransform.position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    // Calculate camera direction vector using yaw and pitch FROM THE COMPONENT
+    glm::vec3 front;
+    front.x = cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
+    front.y = sin(glm::radians(camera.pitch));
+    front.z = sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
+    glm::vec3 cameraFront = glm::normalize(front);
+
+    // The view matrix now looks from the camera's position to a point in front of it
+    glm::mat4 view = glm::lookAt(cameraTransform.position, cameraTransform.position + cameraFront, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 projection = camera.projectionMatrix;
 
     shader->setVec3("light_pos", lightPos);
@@ -24,7 +40,7 @@ void RenderSystem::draw(Coordinator& coordinator,
     shader->setMat4("view", view);
     shader->setMat4("projection", projection);
 
-    for (auto const& entity : entitySet) {
+    for (auto const& entity : entitySet){
         auto const& transform = coordinator.getComponent<TransformComponent>(entity);
         auto const& meshInfo = coordinator.getComponent<MeshComponent>(entity);
 
@@ -36,10 +52,4 @@ void RenderSystem::draw(Coordinator& coordinator,
         auto mesh = assetManager.getMesh(meshInfo.meshName);
         mesh->draw(*shader, assetManager);
     }
-}
-
-void RenderSystem::onEntityAdded(Entity entity) {
-}
-
-void RenderSystem::onEntityRemoved(Entity entity) {
 }

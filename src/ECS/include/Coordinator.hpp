@@ -73,6 +73,10 @@ class Coordinator {
         void removeEntity(Entity entity);
         std::uint32_t getActiveEntityCount();
 
+        template<typename T>
+        bool hasComponent(Entity entity) {
+            return entityManager->getSignature(entity).test(componentManager->getComponentTypeID<T>());
+        }
 
 };
 

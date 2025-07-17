@@ -30,9 +30,14 @@ struct MeshComponent {
 };
 
 
-struct CameraComponent{
+struct CameraComponent {
     glm::mat4 projectionMatrix;
-    bool primary;
+    bool primary = false;
+    // Add camera orientation state here
+    float yaw = -90.0f;
+    float pitch = 0.0f;
+    float sensitivity = 0.1f;
+    float speed = 10.0f;
 };
 
 struct RigidBodyComponent {
@@ -73,3 +78,5 @@ struct CollisionShapeComponent{
     ShapeType type;
     glm::vec3 dimensions;
 };
+
+struct PlayerControlledComponent {};
