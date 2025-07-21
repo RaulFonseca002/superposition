@@ -6,6 +6,7 @@
 #include "RenderSystem.hpp"
 #include "PhysicsSystem.hpp"
 #include "InputSystem.hpp"
+#include "PlayerControlSystem.hpp"
 #include <memory>
 #include <glm/glm.hpp>
 
@@ -27,6 +28,7 @@ private:
     std::shared_ptr<RenderSystem> renderSystem;
     std::shared_ptr<PhysicsSystem> physicsSystem;
     std::shared_ptr<InputSystem> inputSystem;
+    std::shared_ptr<PlayerControlSystem> playerControlSystem;
     
     Entity cameraEntity;
     Entity cubeEntity;

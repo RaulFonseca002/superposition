@@ -19,10 +19,23 @@ using ComponentTypeName = const char*;
 using Signature = std::bitset<MAX_COMPONENTS>;
 using ComponentOverrides = std::map<ComponentTypeID, std::any>;
 
+enum class PlayerAction {
+    MOVE_FORWARD,
+    MOVE_BACK,
+    MOVE_LEFT,
+    MOVE_RIGHT,
+    MOVE_UP,
+    MOVE_DOWN
+};
+
 struct TransformComponent {
     glm::vec3 position = {0.0f, 0.0f, 0.0f};
     glm::quat rotation = {1.0f, 0.0f, 0.0f, 0.0f};
     glm::vec3 scale = {1.0f, 1.0f, 1.0f};
+
+    glm::vec3 front = {0.0f, 0.0f, -1.0f};
+    glm::vec3 up = {0.0f, 1.0f, 0.0f};
+    glm::vec3 right = {1.0f, 0.0f, 0.0f};
 };
 
 struct MeshComponent {
@@ -33,17 +46,20 @@ struct MeshComponent {
 struct CameraComponent {
     glm::mat4 projectionMatrix;
     bool primary = false;
-    // Add camera orientation state here
     float yaw = -90.0f;
     float pitch = 0.0f;
     float sensitivity = 0.1f;
-    float speed = 10.0f;
 };
 
 struct RigidBodyComponent {
+
     float mass;
     float friction;
     float restitution;
+    float forceStrength = 200.0f;
+
+    glm::vec3 force = {0.0f, 0.0f, 0.0f};
+    glm::vec3 torque = {0.0f, 0.0f, 0.0f};
 };
 
 struct InterspaceLinkProperties {
@@ -79,4 +95,8 @@ struct CollisionShapeComponent{
     glm::vec3 dimensions;
 };
 
-struct PlayerControlledComponent {};
+struct PlayerControlledComponent {
+    std::map<int, PlayerAction> keyMap;
+    std::map<PlayerAction, bool> actionState;
+
+};

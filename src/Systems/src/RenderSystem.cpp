@@ -23,15 +23,8 @@ void RenderSystem::draw(Coordinator& coordinator,
 {
     shader->use();
 
-    // Calculate camera direction vector using yaw and pitch FROM THE COMPONENT
-    glm::vec3 front;
-    front.x = cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
-    front.y = sin(glm::radians(camera.pitch));
-    front.z = sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
-    glm::vec3 cameraFront = glm::normalize(front);
-
-    // The view matrix now looks from the camera's position to a point in front of it
-    glm::mat4 view = glm::lookAt(cameraTransform.position, cameraTransform.position + cameraFront, glm::vec3(0.0f, 1.0f, 0.0f));
+    // The view matrix now uses the pre-calculated front vector from the camera's transform
+    glm::mat4 view = glm::lookAt(cameraTransform.position, cameraTransform.position + cameraTransform.front, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 projection = camera.projectionMatrix;
 
     shader->setVec3("light_pos", lightPos);
@@ -40,7 +33,7 @@ void RenderSystem::draw(Coordinator& coordinator,
     shader->setMat4("view", view);
     shader->setMat4("projection", projection);
 
-    for (auto const& entity : entitySet){
+    for (auto const& entity : entitySet) {
         auto const& transform = coordinator.getComponent<TransformComponent>(entity);
         auto const& meshInfo = coordinator.getComponent<MeshComponent>(entity);
 
@@ -50,6 +43,7 @@ void RenderSystem::draw(Coordinator& coordinator,
         shader->setMat4("model", model);
         
         auto mesh = assetManager.getMesh(meshInfo.meshName);
+        // The draw call now happens inside the Mesh::draw method, which handles sub-meshes
         mesh->draw(*shader, assetManager);
     }
 }

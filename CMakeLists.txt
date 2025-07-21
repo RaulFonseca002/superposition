@@ -30,6 +30,7 @@ set(SOURCES
     src/Systems/src/RenderSystem.cpp
     src/Systems/src/PhysicsSystem.cpp
     src/Systems/src/InputSystem.cpp
+    src/Systems/src/PlayerControlSystem.cpp 
     lib/glad/src/glad.c
 )
 
