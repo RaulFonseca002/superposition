@@ -74,8 +74,6 @@ void PlayerControlSystem::processMovementBody(  TransformComponent& transform,
                                                 ){
 
 
-        rigidBody.force = glm::vec3(0.0f);
-
         if (playerControl.actionState.at(PlayerAction::MOVE_FORWARD)) 
             rigidBody.force += glm::vec3(transform.front.x, 0, transform.front.z) * rigidBody.forceStrength;
         if (playerControl.actionState.at(PlayerAction::MOVE_BACK)) 

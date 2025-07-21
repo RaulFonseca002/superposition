@@ -10,12 +10,27 @@ void PhysicsSystem::init(Coordinator* coordinator, SpaceManager* spaceManager) {
 }
 
 void PhysicsSystem::update(float deltaTime) {
-
     Space* mainSpace = spaceManager->getSpace(currentMainSpace);
     if (!mainSpace) return;
 
+    // --- 1. Apply forces from components to the simulation ---
+    for (auto const& entity : entitySet) {
+        auto& rigidBody = coordinator->getComponent<RigidBodyComponent>(entity);
+        btRigidBody* body = entityToRigidBodyMap[entity];
+
+        // If a force has been set in the component, apply it
+        if (body && body->isActive() && rigidBody.force != glm::vec3(0.0f)) {
+            body->applyCentralForce(btVector3(rigidBody.force.x, rigidBody.force.y, rigidBody.force.z));
+        }
+        
+        // Clear the force for the next frame
+        rigidBody.force = glm::vec3(0.0f);
+    }
+
+    // --- 2. Step the simulation ---
     mainSpace->dynamicsWorld->stepSimulation(deltaTime, 10);
 
+    // --- 3. Sync simulation results back to components ---
     for (auto const& pair : entityToRigidBodyMap) {
         Entity entity = pair.first;
         btRigidBody* body = pair.second;
@@ -24,7 +39,6 @@ void PhysicsSystem::update(float deltaTime) {
 
         btTransform btTransform;
         if (body && body->getMotionState()) {
-            //copy body to btTransform variable
             body->getMotionState()->getWorldTransform(btTransform);
         } else {
             continue;

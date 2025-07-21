@@ -85,6 +85,12 @@ void Application::init() {
     cameraEntity = coordinator->createEntity();
     coordinator->addComponent(cameraEntity, TransformComponent{.position = {0.0f, 2.0f, 10.0f}});
     
+    coordinator->addComponent(cameraEntity, RigidBodyComponent{.mass = 1.0f, .forceStrength = 10.0f});
+    coordinator->addComponent(cameraEntity, CollisionShapeComponent{
+        .type = ShapeType::BOX, // Or SPHERE, CAPSULE
+        .dimensions = {0.5f, 0.5f, 0.5f} // A small box for the camera
+    });
+
     // Correctly initialize the CameraComponent with its projection matrix
     coordinator->addComponent(cameraEntity, CameraComponent{
         .projectionMatrix = glm::perspective(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 100.0f),
