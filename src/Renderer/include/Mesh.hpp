@@ -3,11 +3,13 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <memory>
 #include <glm/gtx/hash.hpp>
+#include <tiny_gltf.h> 
 
 class Shader;
-// A struct to define the data that each vertex contains.
-// For now, we only care about position, but we add the others for future use.
+class AssetManager;
+
 struct Vertex {
     glm::vec3 Position;
     glm::vec3 Normal;
@@ -36,17 +38,20 @@ namespace std {
 }
 
 class Mesh {
-public:
-    // Mesh Data
-    std::vector<Vertex>       vertices;
-    std::vector<unsigned int> indices;
-    std::vector<SubMesh>      subMeshes; 
-    unsigned int VAO;
+    public:
+        // Mesh Data
+        std::vector<Vertex>       vertices;
+        std::vector<unsigned int> indices;
+        std::vector<SubMesh>      subMeshes; 
+        unsigned int VAO;
 
-    Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<SubMesh>& subMeshes);
-    void draw(Shader& shader, class AssetManager& assetManager);
+        Mesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<SubMesh>&& subMeshes);
+        void draw(Shader& shader, AssetManager& assetManager);
+        
+        static std::shared_ptr<Mesh> CreateFromGLTF(const tinygltf::Model& model, const tinygltf::Mesh& gltfMesh);
 
-private:
-    unsigned int VBO, EBO;
-    void setupMesh();
+    private:
+        unsigned int VBO, EBO;
+        void setupMesh();
+        
 };

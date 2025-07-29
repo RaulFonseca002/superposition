@@ -27,6 +27,7 @@ set(SOURCES
     src/ECS/src/SystemManager.cpp
     src/Renderer/src/Shader.cpp
     src/Renderer/src/Mesh.cpp
+    src/Renderer/src/Texture.cpp
     src/Systems/src/RenderSystem.cpp
     src/Systems/src/PhysicsSystem.cpp
     src/Systems/src/InputSystem.cpp
@@ -47,6 +48,8 @@ target_include_directories(Superposition PRIVATE
     "${CMAKE_SOURCE_DIR}/lib/glad/include"
     "${CMAKE_SOURCE_DIR}/lib/glm"
     "${CMAKE_SOURCE_DIR}/lib/tinyobjloader"
+    "${CMAKE_SOURCE_DIR}/lib/tinygltf"
+    "${CMAKE_SOURCE_DIR}/lib/stb"
     "${CMAKE_SOURCE_DIR}/lib/bullet/src" 
     "${CMAKE_SOURCE_DIR}/lib/glfw/include"
 )

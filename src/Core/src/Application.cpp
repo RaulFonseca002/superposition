@@ -1,6 +1,7 @@
-#include <glad/glad.h>
 
 #include "Application.hpp"
+#include "Mesh.hpp"
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -13,6 +14,7 @@ Application::Application() {
 }
 
 void Application::init() {
+
     if (!glfwInit()) { throw std::runtime_error("Failed to initialize GLFW"); }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -38,65 +40,66 @@ void Application::init() {
     coordinator->registerComponent<CollisionShapeComponent>();
     coordinator->registerComponent<PlayerControlledComponent>();
 
-    // Register systems
     {
         Signature signature;
         signature.set(coordinator->getComponentTypeID<TransformComponent>());
         signature.set(coordinator->getComponentTypeID<MeshComponent>());
         coordinator->registerSystem<RenderSystem>(signature);
-        renderSystem = coordinator->getSystem<RenderSystem>();
     }
+    renderSystem = coordinator->getSystem<RenderSystem>();
+
     {
         Signature signature;
         signature.set(coordinator->getComponentTypeID<TransformComponent>());
         signature.set(coordinator->getComponentTypeID<RigidBodyComponent>());
         signature.set(coordinator->getComponentTypeID<CollisionShapeComponent>());
         coordinator->registerSystem<PhysicsSystem>(signature);
-        physicsSystem = coordinator->getSystem<PhysicsSystem>();
     }
+    physicsSystem = coordinator->getSystem<PhysicsSystem>();
+
     {
         Signature signature;
         signature.set(coordinator->getComponentTypeID<PlayerControlledComponent>());
         coordinator->registerSystem<InputSystem>(signature);
-        inputSystem = coordinator->getSystem<InputSystem>();
     }
+    inputSystem = coordinator->getSystem<InputSystem>();
+
     {
         Signature signature;
         signature.set(coordinator->getComponentTypeID<PlayerControlledComponent>());
         signature.set(coordinator->getComponentTypeID<TransformComponent>());
         coordinator->registerSystem<PlayerControlSystem>(signature);
-        playerControlSystem = coordinator->getSystem<PlayerControlSystem>();
     }
-    
+    playerControlSystem = coordinator->getSystem<PlayerControlSystem>();
+
     // Initialize systems
     physicsSystem->init(coordinator.get(), spaceManager.get());
     inputSystem->init(coordinator.get(), window);
     playerControlSystem->init(coordinator.get(), inputSystem.get());
 
-    assetManager->loadShader("phong", "assets/shaders/phong.vert", "assets/shaders/phong.frag");
-    assetManager->loadMesh("cube", "assets/models/cube.obj"); 
-    assetManager->loadMesh("plane", "assets/models/plane.obj");
+    // Load the new PBR shader
+    assetManager->loadShader("pbr", "assets/shaders/pbr.vert", "assets/shaders/pbr.frag");
 
+    // Load the scenes from your .gltf files
+    assetManager->loadScene("platform", "assets/models/Platform_2x2_Empty.gltf", *coordinator);
+    assetManager->loadScene("platform", "assets/models/Light_Square.gltf", *coordinator);
+
+    // Set up the physics world
     spaceManager->createSpace();
 
-    lightPos = glm::vec3(5.0f, 5.0f, 5.0f);
+    // Set up a light source
+    lightPos = glm::vec3(0.0f, 10.0f, 10.0f);
     lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
+    // Create the camera entity
     cameraEntity = coordinator->createEntity();
-    coordinator->addComponent(cameraEntity, TransformComponent{.position = {0.0f, 2.0f, 10.0f}});
-    
-    coordinator->addComponent(cameraEntity, RigidBodyComponent{.mass = 1.0f, .forceStrength = 10.0f});
-    coordinator->addComponent(cameraEntity, CollisionShapeComponent{
-        .type = ShapeType::BOX, // Or SPHERE, CAPSULE
-        .dimensions = {0.5f, 0.5f, 0.5f} // A small box for the camera
-    });
-
-    // Correctly initialize the CameraComponent with its projection matrix
+    coordinator->addComponent(cameraEntity, TransformComponent{.position = {0.0f, 5.0f, 15.0f}});
     coordinator->addComponent(cameraEntity, CameraComponent{
         .projectionMatrix = glm::perspective(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 100.0f),
         .primary = true
     });
     
+    // Add player controls to the camera
     PlayerControlledComponent cameraController;
     cameraController.keyMap[GLFW_KEY_W] = PlayerAction::MOVE_FORWARD;
     cameraController.keyMap[GLFW_KEY_S] = PlayerAction::MOVE_BACK;
@@ -104,38 +107,48 @@ void Application::init() {
     cameraController.keyMap[GLFW_KEY_D] = PlayerAction::MOVE_RIGHT;
     coordinator->addComponent(cameraEntity, cameraController);
 
-    cubeEntity = coordinator->createEntity();
-    coordinator->addComponent(cubeEntity, TransformComponent{.position = {0.0f, 5.0f, 0.0f}, .scale = {0.1f, 0.1f, 0.1f}});
-    coordinator->addComponent(cubeEntity, MeshComponent{.meshName = "cube"});
-    coordinator->addComponent(cubeEntity, RigidBodyComponent{.mass = 1.0f});
-    coordinator->addComponent(cubeEntity, CollisionShapeComponent{.type = ShapeType::BOX, .dimensions = {0.5f, 0.5f, 0.5f}});
+    Entity lightSquare = assetManager->getEntityFromScene("lightSquareScene", "Light_Square");
+    if (lightSquare != -1) {
+        auto& lightTransform = coordinator->getComponent<TransformComponent>(lightSquare);
+        lightTransform.position = {0.0f, 10.0f, 0.0f};
+        
+        coordinator->addComponent(lightSquare, RigidBodyComponent{.mass = 5.0f});
+        coordinator->addComponent(lightSquare, CollisionShapeComponent{.type = ShapeType::BOX, .dimensions = {0.5f, 0.5f, 0.5f}});
+    }
+        
+    Entity groundEntity = assetManager->getEntityFromScene("platformScene", "Platform_2x2_Empty");
+    if (groundEntity != -1) {
 
-    groundEntity = coordinator->createEntity();
-    coordinator->addComponent(groundEntity, TransformComponent{.position = {0.0f, -0.5f, 0.0f}, .scale = {20.0f, 0.5f, 20.0f}});
-    coordinator->addComponent(groundEntity, MeshComponent{.meshName = "plane"});
-    coordinator->addComponent(groundEntity, RigidBodyComponent{.mass = 0.0f});
-    coordinator->addComponent(groundEntity, CollisionShapeComponent{.type = ShapeType::BOX, .dimensions = {20.0f, 0.5f, 20.0f}});
+        auto& groundTransform = coordinator->getComponent<TransformComponent>(groundEntity);
+        groundTransform.position = {0.0f, 0.0f, 0.0f};
+        groundTransform.scale = {10.0f, 10.0f, 10.0f};
+
+        coordinator->addComponent(groundEntity, RigidBodyComponent{.mass = 0.0f});
+        coordinator->addComponent(groundEntity, CollisionShapeComponent{
+            .type = ShapeType::BOX, 
+            .dimensions = {10.0f, 0.5f, 10.0f}
+        });
+    }
+
 }
 
 void Application::run() {
-
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // --- Update systems in the correct order ---
+        // Update systems in the correct order
         inputSystem->update(deltaTime);
         playerControlSystem->update(deltaTime);
         physicsSystem->update(deltaTime);
-          
-        // --- Render ---
+        
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         auto const& cameraComponent = coordinator->getComponent<CameraComponent>(cameraEntity);
         auto const& cameraTransform = coordinator->getComponent<TransformComponent>(cameraEntity);
-        auto shader = assetManager->getShader("phong");
+        auto shader = assetManager->getShader("pbr");
 
         renderSystem->draw(*coordinator, *assetManager, shader, cameraComponent, cameraTransform, lightPos, lightColor);
 

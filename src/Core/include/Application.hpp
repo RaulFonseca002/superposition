@@ -31,8 +31,6 @@ private:
     std::shared_ptr<PlayerControlSystem> playerControlSystem;
     
     Entity cameraEntity;
-    Entity cubeEntity;
-    Entity groundEntity;
 
     glm::vec3 lightPos;
     glm::vec3 lightColor;

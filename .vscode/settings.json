@@ -67,6 +67,9 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "regex": "cpp",
+        "valarray": "cpp"
     }
 }

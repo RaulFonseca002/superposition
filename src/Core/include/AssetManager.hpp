@@ -2,35 +2,45 @@
 
 #include "Shader.hpp"
 #include "Mesh.hpp"
+#include "Texture.hpp"
+#include "Types.hpp" 
 #include <map>
 #include <string>
 #include <memory>
-#include <unordered_map>
+#include <vector>
+
+using Scene = std::map<std::string, Entity>;
+
+class Coordinator;
 
 struct Material {
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-    float shininess;
+    std::shared_ptr<Texture> albedoMap;
+    glm::vec4 albedoFactor = glm::vec4(1.0f);
+    float metallicFactor = 1.0f;
+    float roughnessFactor = 1.0f;
 };
 
-namespace tinyobj {
-    struct material_t;
-}
-
 class AssetManager {
-public:
-    std::shared_ptr<Shader> loadShader(const std::string& name, const std::string& vertPath, const std::string& fragPath);
-    std::shared_ptr<Shader> getShader(const std::string& name);
 
-    std::shared_ptr<Mesh> loadMesh(const std::string& name, const std::string& path);
-    std::shared_ptr<Mesh> getMesh(const std::string& name);
-    
-    std::shared_ptr<Material> getMaterial(const std::string& name);
+    private:
+        std::map<std::string, Scene> scenes;
+        std::map<std::string, std::shared_ptr<Shader>> shaders;
+        std::map<std::string, std::shared_ptr<Mesh>> meshes;
+        std::map<std::string, std::shared_ptr<Texture>> textures;
+        std::map<std::string, std::shared_ptr<Material>> materials;
 
-private:
-    void processMaterials(const std::vector<tinyobj::material_t>& materials);
-    
-    std::map<std::string, std::shared_ptr<Shader>> shaders;
-    std::map<std::string, std::shared_ptr<Mesh>> meshes;
-    std::map<std::string, std::shared_ptr<Material>> materials;
+        void processMaterials(const tinygltf::Model& model);
+
+    public:
+
+        Scene& loadScene(const std::string& sceneName, const std::string& path, Coordinator& coordinator);
+        std::shared_ptr<Shader> loadShader(const std::string& name, const std::string& vertPath, const std::string& fragPath);
+
+        std::shared_ptr<Shader> getShader(const std::string& name);
+        std::shared_ptr<Mesh> getMesh(const std::string& name);
+        std::shared_ptr<Texture> getTexture(const std::string& name);
+        std::shared_ptr<Material> getMaterial(const std::string& name);
+        Scene* getScene(const std::string& sceneName);
+        Entity getEntityFromScene(const std::string& sceneName, const std::string& entityName);
+
 };

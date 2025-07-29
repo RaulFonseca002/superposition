@@ -55,11 +55,14 @@ struct RigidBodyComponent {
 
     float mass;
     float friction;
-    float restitution;
+    float restitution; //bounceness
     float forceStrength = 200.0f;
 
     glm::vec3 force = {0.0f, 0.0f, 0.0f};
     glm::vec3 torque = {0.0f, 0.0f, 0.0f};
+
+    float linearDamping = 0.1f;
+    float angularDamping = 0.1f;
 };
 
 struct InterspaceLinkProperties {

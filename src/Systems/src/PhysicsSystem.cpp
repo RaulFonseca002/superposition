@@ -54,10 +54,7 @@ void PhysicsSystem::update(float deltaTime) {
 
 void PhysicsSystem::addEntityToPhysics(Entity entity, Space* space) {
 
-    if (entityToRigidBodyMap.find(entity) != entityToRigidBodyMap.end()) {
-        // Entity already has a rigid body, do nothing.
-        return;
-    }
+    if (entityToRigidBodyMap.find(entity) != entityToRigidBodyMap.end()) return;
 
     auto const& transform = coordinator->getComponent<TransformComponent>(entity);
     auto const& rigidBody = coordinator->getComponent<RigidBodyComponent>(entity);
@@ -70,26 +67,23 @@ void PhysicsSystem::addEntityToPhysics(Entity entity, Space* space) {
             colShape = new btBoxShape(btVector3(shapeInfo.dimensions.x, shapeInfo.dimensions.y, shapeInfo.dimensions.z));
             break;
         case ShapeType::SPHERE:
-            colShape = new btSphereShape(shapeInfo.dimensions.x); // Use x as radius
+            colShape = new btSphereShape(shapeInfo.dimensions.x);
             break;
         case ShapeType::CAPSULE:
-            colShape = new btCapsuleShape(shapeInfo.dimensions.x, shapeInfo.dimensions.y); // Use x as radius, y as height
+            colShape = new btCapsuleShape(shapeInfo.dimensions.x, shapeInfo.dimensions.y);
             break;
     }
 
     btTransform startTransform;
     startTransform.setIdentity();
-    startTransform.setOrigin(btVector3(
-                                transform.position.x, 
-                                transform.position.y, 
-                                transform.position.z));
+    startTransform.setOrigin(btVector3( transform.position.x, 
+                                        transform.position.y, 
+                                        transform.position.z));
 
-    startTransform.setRotation(btQuaternion
-                                (transform.rotation.x, 
-                                transform.rotation.y, 
-                                transform.rotation.z, 
-                                transform.rotation.w));
-
+    startTransform.setRotation(btQuaternion(transform.rotation.x,
+                                            transform.rotation.y, 
+                                            transform.rotation.z, 
+                                            transform.rotation.w));
 
     btScalar mass(rigidBody.mass);
     bool isDynamic = (mass != 0.f);
@@ -102,10 +96,12 @@ void PhysicsSystem::addEntityToPhysics(Entity entity, Space* space) {
     btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
     btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
     btRigidBody* body = new btRigidBody(rbInfo);
+    
+    body->setDamping(rigidBody.linearDamping, rigidBody.angularDamping);
+    rbInfo.m_friction = rigidBody.friction;
 
     space->dynamicsWorld->addRigidBody(body);
     entityToRigidBodyMap[entity] = body;
-
 }
 
 void PhysicsSystem::removeEntityFromPhysics(Entity entity, Space* space) {

@@ -19,11 +19,10 @@ void RenderSystem::draw(Coordinator& coordinator,
                         const CameraComponent& camera,
                         const TransformComponent& cameraTransform,
                         const glm::vec3& lightPos,
-                        const glm::vec3& lightColor)
-{
+                        const glm::vec3& lightColor) {
+                            
     shader->use();
 
-    // The view matrix now uses the pre-calculated front vector from the camera's transform
     glm::mat4 view = glm::lookAt(cameraTransform.position, cameraTransform.position + cameraTransform.front, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 projection = camera.projectionMatrix;
 
@@ -40,10 +39,10 @@ void RenderSystem::draw(Coordinator& coordinator,
         glm::mat4 model = glm::translate(glm::mat4(1.0f), transform.position) *
                           glm::mat4_cast(transform.rotation) *
                           glm::scale(glm::mat4(1.0f), transform.scale);
+        
         shader->setMat4("model", model);
         
         auto mesh = assetManager.getMesh(meshInfo.meshName);
-        // The draw call now happens inside the Mesh::draw method, which handles sub-meshes
         mesh->draw(*shader, assetManager);
     }
 }
