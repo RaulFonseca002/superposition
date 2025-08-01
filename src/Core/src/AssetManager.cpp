@@ -84,6 +84,12 @@ void AssetManager::processMaterials(const tinygltf::Model& model) {
         mat->metallicFactor = pbr.metallicFactor;
         mat->roughnessFactor = pbr.roughnessFactor;
 
+        if (material.emissiveFactor.size() == 3) {
+            mat->emissiveFactor = glm::vec3(material.emissiveFactor[0], material.emissiveFactor[1], material.emissiveFactor[2]);
+        }
+        
+        mat->doubleSided = material.doubleSided;
+
         materials[material.name] = mat;
     }
 }

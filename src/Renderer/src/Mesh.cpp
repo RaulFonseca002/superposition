@@ -44,7 +44,8 @@ void Mesh::draw(Shader& shader, AssetManager& assetManager) {
         shader.setVec4("albedoFactor", material->albedoFactor);
         shader.setFloat("metallicFactor", material->metallicFactor);
         shader.setFloat("roughnessFactor", material->roughnessFactor);
-
+        shader.setVec3("emissiveFactor", material->emissiveFactor);
+        shader.setBool("doubleSided", material->doubleSided);
         glDrawElements(GL_TRIANGLES, 
                        subMesh.indexCount, 
                        GL_UNSIGNED_INT, 
@@ -60,15 +61,11 @@ std::shared_ptr<Mesh> Mesh::CreateFromGLTF(const tinygltf::Model& model, const t
 
     for (const auto& primitive : gltfMesh.primitives) {
         SubMesh subMesh;
+        // This is the key fix: we track the starting index for this primitive's vertices
+        unsigned int baseVertex = static_cast<unsigned int>(vertices.size());
         unsigned int indexOffset = static_cast<unsigned int>(indices.size());
         
-        // --- Process Indices ---
-        const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
-        const tinygltf::BufferView& indexBufferView = model.bufferViews[indexAccessor.bufferView];
-        const tinygltf::Buffer& indexBuffer = model.buffers[indexBufferView.buffer];
-        const void* indexData = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
-
-        // --- Process Vertex Attributes ---
+        // --- Process Vertices ---
         const float* positions = nullptr;
         const float* normals = nullptr;
         const float* texcoords = nullptr;
@@ -94,22 +91,23 @@ std::shared_ptr<Mesh> Mesh::CreateFromGLTF(const tinygltf::Model& model, const t
         for (size_t i = 0; i < vertexCount; i++) {
             Vertex vertex{};
             vertex.Position = glm::make_vec3(&positions[i * 3]);
-            if (normals) {
-                vertex.Normal = glm::make_vec3(&normals[i * 3]);
-            }
-            if (texcoords) {
-                vertex.TexCoords = glm::make_vec2(&texcoords[i * 2]);
-            }
+            if (normals) vertex.Normal = glm::make_vec3(&normals[i * 3]);
+            if (texcoords) vertex.TexCoords = glm::make_vec2(&texcoords[i * 2]);
             vertices.push_back(vertex);
         }
         
+        // --- Process Indices ---
+        const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
+        const tinygltf::BufferView& indexBufferView = model.bufferViews[indexAccessor.bufferView];
+        const tinygltf::Buffer& indexBuffer = model.buffers[indexBufferView.buffer];
+        const void* indexData = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
+        
         for (size_t i = 0; i < indexAccessor.count; i++) {
+            // Add the baseVertex offset to correctly map the index to the combined vertex buffer
             if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-                const unsigned short* buffer = static_cast<const unsigned short*>(indexData);
-                indices.push_back(indexOffset + buffer[i]);
+                indices.push_back(baseVertex + static_cast<const unsigned short*>(indexData)[i]);
             } else if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-                const unsigned int* buffer = static_cast<const unsigned int*>(indexData);
-                indices.push_back(indexOffset + buffer[i]);
+                indices.push_back(baseVertex + static_cast<const unsigned int*>(indexData)[i]);
             }
         }
 

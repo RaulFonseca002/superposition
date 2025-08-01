@@ -18,6 +18,8 @@ struct Material {
     glm::vec4 albedoFactor = glm::vec4(1.0f);
     float metallicFactor = 1.0f;
     float roughnessFactor = 1.0f;
+    glm::vec3 emissiveFactor = glm::vec3(0.0f); 
+    bool doubleSided = false;
 };
 
 class AssetManager {

@@ -13,6 +13,16 @@ Application::Application() {
     init();
 }
 
+Application::~Application() {
+
+    coordinator.reset();
+    assetManager.reset();
+    spaceManager.reset();
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+
 void Application::init() {
 
     if (!glfwInit()) { throw std::runtime_error("Failed to initialize GLFW"); }
@@ -79,21 +89,20 @@ void Application::init() {
 
     // Load the new PBR shader
     assetManager->loadShader("pbr", "assets/shaders/pbr.vert", "assets/shaders/pbr.frag");
-
-    // Load the scenes from your .gltf files
+    assetManager->loadShader("post_process", "assets/shaders/post_process.vert" ,"assets/shaders/post_process.frag");
     assetManager->loadScene("platform", "assets/models/Platform_2x2_Empty.gltf", *coordinator);
     assetManager->loadScene("platform", "assets/models/Light_Square.gltf", *coordinator);
+    renderSystem->init(coordinator.get(), assetManager.get());
 
     // Set up the physics world
     spaceManager->createSpace();
 
     // Set up a light source
-    lightPos = glm::vec3(0.0f, 10.0f, 10.0f);
-    lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    lightPos = glm::vec3(0.0f, 5.0f, 5.0f);
+    lightColor = glm::vec3(150.0f, 150.0f, 150.0f);
 
-    // Create the camera entity
     cameraEntity = coordinator->createEntity();
-    coordinator->addComponent(cameraEntity, TransformComponent{.position = {0.0f, 5.0f, 15.0f}});
+    coordinator->addComponent(cameraEntity, TransformComponent{.position = {0.0f, 2.0f, 10.0f}});
     coordinator->addComponent(cameraEntity, CameraComponent{
         .projectionMatrix = glm::perspective(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 100.0f),
         .primary = true
@@ -143,19 +152,12 @@ void Application::run() {
         playerControlSystem->update(deltaTime);
         physicsSystem->update(deltaTime);
         
-        glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         auto const& cameraComponent = coordinator->getComponent<CameraComponent>(cameraEntity);
         auto const& cameraTransform = coordinator->getComponent<TransformComponent>(cameraEntity);
-        auto shader = assetManager->getShader("pbr");
-
-        renderSystem->draw(*coordinator, *assetManager, shader, cameraComponent, cameraTransform, lightPos, lightColor);
+        renderSystem->draw(cameraComponent, cameraTransform, lightPos, lightColor);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
 }

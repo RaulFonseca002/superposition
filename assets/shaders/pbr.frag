@@ -1,17 +1,19 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec3 FragPos;
-in vec3 Normal;
+in vec3 Normal;  
+in vec3 FragPos;  
 in vec2 TexCoords;
 
-// Material PBR properties
+// Material properties
 uniform sampler2D albedoMap;
 uniform vec4  albedoFactor;
 uniform float metallicFactor;
 uniform float roughnessFactor;
+uniform vec3  emissiveFactor;
+uniform bool  doubleSided;
 
-// Lights
+// Lights & Camera
 uniform vec3 lightPos;
 uniform vec3 lightColor;
 uniform vec3 viewPos;
@@ -57,8 +59,15 @@ void main()
     vec3 albedo     = pow(texture(albedoMap, TexCoords).rgb, vec3(2.2)) * albedoFactor.rgb;
     float metallic  = metallicFactor;
     float roughness = roughnessFactor;
+    vec3 emissive   = emissiveFactor;
 
-    vec3 N = normalize(Normal);
+    vec3 N = Normal;
+    // If this is a back-face on a double-sided material, flip the normal
+    if (doubleSided && !gl_FrontFacing) {
+        N = -N;
+    }
+    N = normalize(N);
+
     vec3 V = normalize(viewPos - FragPos);
 
     vec3 F0 = vec3(0.04); 
@@ -90,9 +99,11 @@ void main()
     float NdotL = max(dot(N, L), 0.0);        
     Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 
+    // Add emissive and ambient light
     vec3 ambient = vec3(0.03) * albedo;
-    vec3 color = ambient + Lo;
+    vec3 color = ambient + Lo + emissive;
 	
+    // HDR tone mapping
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  
    

@@ -27,6 +27,7 @@ set(SOURCES
     src/ECS/src/SystemManager.cpp
     src/Renderer/src/Shader.cpp
     src/Renderer/src/Mesh.cpp
+    src/Renderer/src/Framebuffer.cpp
     src/Renderer/src/Texture.cpp
     src/Systems/src/RenderSystem.cpp
     src/Systems/src/PhysicsSystem.cpp
