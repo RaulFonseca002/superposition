@@ -31,7 +31,7 @@ class RenderSystem : public System {
 
     public:
 
-        ~RenderSystem();
+        ~RenderSystem() = default;
 
         void init(  Coordinator* coordinator, 
                     AssetManager* assetManager, 

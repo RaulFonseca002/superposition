@@ -12,9 +12,6 @@ struct QuadVertex {
     glm::vec2 TexCoords;
 };
 
-RenderSystem::~RenderSystem(){
-    framebuffer.reset();
-}
 
 void RenderSystem::init(Coordinator* coordinator, AssetManager* assetManager, int screenWidth, int screenHeight) {
 

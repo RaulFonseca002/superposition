@@ -18,7 +18,7 @@ Application::~Application() {
     coordinator.reset();
     assetManager.reset();
     spaceManager.reset();
-
+    renderSystem.reset();
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -91,11 +91,11 @@ void Application::init() {
     assetManager->loadShader("pbr", "assets/shaders/pbr.vert", "assets/shaders/pbr.frag");
     assetManager->loadShader("post_process", "assets/shaders/post_process.vert" ,"assets/shaders/post_process.frag");
     assetManager->loadScene("platform", "assets/models/Platform_2x2_Empty.gltf", *coordinator);
-    assetManager->loadScene("platform", "assets/models/Light_Square.gltf", *coordinator);
+    assetManager->loadScene("squere", "assets/models/Light_Square.gltf", *coordinator);
     renderSystem->init(coordinator.get(), assetManager.get());
 
     // Set up the physics world
-    spaceManager->createSpace();
+    spaceManager->createSpace(btVector3(0, -9.81, 0));
 
     // Set up a light source
     lightPos = glm::vec3(0.0f, 5.0f, 5.0f);
@@ -116,29 +116,39 @@ void Application::init() {
     cameraController.keyMap[GLFW_KEY_D] = PlayerAction::MOVE_RIGHT;
     coordinator->addComponent(cameraEntity, cameraController);
 
-    Entity lightSquare = assetManager->getEntityFromScene("lightSquareScene", "Light_Square");
+    // Add physics components to the camera
+    coordinator->addComponent(cameraEntity, RigidBodyComponent{
+        .mass = 10.0f, 
+        .friction = 0.1f,
+        .linearDamping = 0.5f,
+        .angularDamping = 1.0f
+    });
+    
+    coordinator->addComponent(cameraEntity, CollisionShapeComponent{.type = ShapeType::CAPSULE, .dimensions = {0.5f, 1.0f, 0.0f}});
+
+
+    // Get the light square entity and add physics components
+    Entity lightSquare = assetManager->getEntityFromScene("squere", "Light_Square");
     if (lightSquare != -1) {
         auto& lightTransform = coordinator->getComponent<TransformComponent>(lightSquare);
-        lightTransform.position = {0.0f, 10.0f, 0.0f};
+        lightTransform.position = {0.0f, 10.0f, 0.0f}; // Start it above the platform
         
-        coordinator->addComponent(lightSquare, RigidBodyComponent{.mass = 5.0f});
+        coordinator->addComponent(lightSquare, RigidBodyComponent{.mass = 5.0f, .friction = 0.5f, .restitution = 0.5f});
         coordinator->addComponent(lightSquare, CollisionShapeComponent{.type = ShapeType::BOX, .dimensions = {0.5f, 0.5f, 0.5f}});
     }
         
-    Entity groundEntity = assetManager->getEntityFromScene("platformScene", "Platform_2x2_Empty");
+   // Get the platform entity and add physics components
+    Entity groundEntity = assetManager->getEntityFromScene("platform", "Platform_2x2_Empty");
     if (groundEntity != -1) {
+        auto& platformTransform = coordinator->getComponent<TransformComponent>(groundEntity);
+        platformTransform.scale = {10.0f, 0.5f, 10.0f};
 
-        auto& groundTransform = coordinator->getComponent<TransformComponent>(groundEntity);
-        groundTransform.position = {0.0f, 0.0f, 0.0f};
-        groundTransform.scale = {10.0f, 10.0f, 10.0f};
-
-        coordinator->addComponent(groundEntity, RigidBodyComponent{.mass = 0.0f});
+        coordinator->addComponent(groundEntity, RigidBodyComponent{.mass = 0.0f, .friction = 0.8f});
         coordinator->addComponent(groundEntity, CollisionShapeComponent{
             .type = ShapeType::BOX, 
             .dimensions = {10.0f, 0.5f, 10.0f}
         });
     }
-
 }
 
 void Application::run() {

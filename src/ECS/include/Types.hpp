@@ -63,6 +63,7 @@ struct RigidBodyComponent {
 
     float linearDamping = 0.1f;
     float angularDamping = 0.1f;
+    float maxSpeed = 10.0f;
 };
 
 struct InterspaceLinkProperties {

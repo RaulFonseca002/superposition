@@ -35,6 +35,14 @@ void PhysicsSystem::update(float deltaTime) {
         Entity entity = pair.first;
         btRigidBody* body = pair.second;
         
+        auto const& rigidBody = coordinator->getComponent<RigidBodyComponent>(entity);
+        btVector3 velocity = body->getLinearVelocity();
+        btScalar speed = velocity.length();
+        if (speed > rigidBody.maxSpeed) {
+            velocity *= rigidBody.maxSpeed / speed;
+            body->setLinearVelocity(velocity);
+        }
+        
         auto& transform = coordinator->getComponent<TransformComponent>(entity);
 
         btTransform btTransform;
